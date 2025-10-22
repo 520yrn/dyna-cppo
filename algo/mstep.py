@@ -54,7 +54,8 @@ def mstep_update(
         entropy  = getattr(policy, "entropy", lambda o: None)(obs_t)
     else:
         # generic fallback: assume `policy.forward(obs)` returns a dist
-        dist = policy(obs_t)  # should return a distribution with .log_prob() / .entropy()
+        mu, std = policy(obs_t)  # should return a distribution with .log_prob() / .entropy()
+        dist = torch.distributions.Normal(mu, std)
         new_logp = dist.log_prob(act_t).sum(-1)  # sum over action dims if needed
         # entropy averaged over batch if available
         try:

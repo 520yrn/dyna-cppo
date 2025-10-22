@@ -100,7 +100,8 @@ def collect_rollout(
         # sample action from current policy
         # policy should return a distribution OR expose log_prob(obs, act)
         with torch.no_grad():
-            dist = policy(torch.as_tensor(obs, dtype=torch.float32, device=device).unsqueeze(0))  # expect dist
+            mu, std = policy(torch.as_tensor(obs, dtype=torch.float32, device=device).unsqueeze(0))  # expect dist
+            dist = torch.distributions.Normal(mu, std)
             act_t = dist.sample()                                     # [1, act_dim]
             logp_t = dist.log_prob(act_t).sum(-1)                     # [1]
             act_np = act_t.squeeze(0).cpu().numpy()
@@ -270,14 +271,16 @@ def train_once(
             cost=ep_cost,
             constraint_violation=max(0.0, ep_cost - d_constraint),
         )
-        print(
-            f"[it {it:04d}] step={global_step} | "
-            f"EpRew={ep_rew:.1f} EpCost={ep_cost:.1f} | "
-            f"Vr={loss_vr.item():.3f} Vc={loss_vc.item():.3f} | "
-            f"PiLoss={mstats['loss']:.3f} Track={mstats['track_loss']:.3f} "
-            f"MeanRatio={mstats['mean_ratio']:.3f} LB%={mstats['frac_ratio_below_lb']*100:.1f}% | "
-            f"time={elapsed/60:.1f}m"
-        )
+        log_path = os.path.join(log_dir, "train_log.txt")
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(
+                f"[it {it:04d}] step={global_step} | "
+                f"EpRew={ep_rew:.1f} EpCost={ep_cost:.1f} | "
+                f"Vr={loss_vr.item():.3f} Vc={loss_vc.item():.3f} | "
+                f"PiLoss={mstats['loss']:.3f} Track={mstats['track_loss']:.3f} "
+                f"MeanRatio={mstats['mean_ratio']:.3f} LB%={mstats['frac_ratio_below_lb']*100:.1f}% | "
+                f"time={elapsed/60:.1f}m\n"
+                )
 
     env.close()
 
@@ -286,7 +289,7 @@ if __name__ == "__main__":
     # You can tweak these defaults or wire up argparse later.
     train_once(
         env_id="SafetyPointGoal1-v0",
-        total_iters=50,          # keep small for a smoke test; increase for real training
+        total_iters=10000,          # keep small for a smoke test; increase for real training
         horizon=1024,
         gamma=0.99, lam=0.95,
         cost_gamma=0.99, cost_lam=0.95,
