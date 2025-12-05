@@ -10006,3 +10006,4 @@
 [it 9998] step=10237952 | EpRew=18.6 EpCost=83.0 | Vr=0.021 Vc=2.466 | PiLoss=0.024 Track=0.024 MeanRatio=1.000 LB%=0.0% | time=637.5m
 [it 9999] step=10238976 | EpRew=19.2 EpCost=86.0 | Vr=0.026 Vc=2.848 | PiLoss=0.027 Track=0.027 MeanRatio=1.000 LB%=0.0% | time=637.5m
 [it 10000] step=10240000 | EpRew=19.7 EpCost=71.0 | Vr=0.025 Vc=2.264 | PiLoss=0.022 Track=0.022 MeanRatio=1.000 LB%=0.0% | time=637.6m
+
